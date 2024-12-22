@@ -1,9 +1,15 @@
 const express = require("express");
+const { adminAuth } = require("./middleware");
 
 const app = express();
 
 app.listen(3000);
 
-app.use("/test",(req, res) => {
-    res.send("<h1>SERVER IS LISTENING ON PORT 3000</h1>")
-})
+app.use("/admin", adminAuth);
+
+app.get("/admin/getAllData", (req, res) => {
+    res.send({
+      name:"Nitin",
+      type:"Admin"
+    })
+});
