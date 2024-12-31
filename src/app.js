@@ -1,15 +1,27 @@
 const express = require("express");
-const { adminAuth } = require("./middleware");
+const {connectDB} = require("./config/database")
 
 const app = express();
+const User = require("./models/user")
 
-app.listen(3000);
+app.post("/signup",async(req,res)=>{
+  //Creatung
+  const user = new User({
+    firstName:"Nitin",
+    lastName:"Dutta",
+    emailId:"nitindutta5@gmail.com",
+    password:"Test@123"
+  });
+  await user.save();
+  res.send("User Created Succesfully")
+})
 
-app.use("/admin", adminAuth);
 
-app.get("/admin/getAllData", (req, res) => {
-    res.send({
-      name:"Nitin",
-      type:"Admin"
-    })
-});
+connectDB().then((val) => {
+  console.log("DB Connected Succesfully")
+  app.listen(3000, () => {
+    console.log("LISTING TO PORT 3000")
+  });
+}).catch((e) =>{
+  console.log(e,"DB Error Occured")
+})
