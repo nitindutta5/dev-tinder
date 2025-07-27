@@ -56,7 +56,7 @@ app.post("/login",async(req,res)=>{
     const isPasswordValid = await user.validatePassword(password);
     if(isPasswordValid){
       let token = await user.getJWT();
-      res.cookie("token",token,{httpOnly:true, secure:true, expires: new Date()})
+      res.cookie("token",token,{httpOnly:true, secure:true})
       res.send("User logged in succesfully")
     }
   else{
