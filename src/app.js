@@ -3,6 +3,9 @@ const {connectDB} = require("./config/database")
 const User = require("./models/user")
 const {validateSignUpData} = require("./helpers/validation")
 const bycrpt = require("bcrypt")
+const cookieParser = require("cookie-parser")
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middleware");
 
 const app = express();
 
@@ -17,13 +20,14 @@ connectDB().then((val) => {
 
 
 app.use(express.json());
+app.use(cookieParser())
 
 app.get("/", (req, res) => {
   res.send("Welcome to dev tinder backend!")
 })
 
 app.post("/signup",async(req,res)=>{
-  //Creatung
+  //Creating
   try{
     validateSignUpData(req);
     const {password} = req.body;
@@ -49,8 +53,10 @@ app.post("/login",async(req,res)=>{
     if(!user){
       throw new Error("Invalid Credentails")
     }
-    const isPasswordValid = await bycrpt.compare(password,user.password);
+    const isPasswordValid = await user.validatePassword(password);
     if(isPasswordValid){
+      let token = await user.getJWT();
+      res.cookie("token",token,{httpOnly:true, secure:true, expires: new Date()})
       res.send("User logged in succesfully")
     }
   else{
@@ -64,43 +70,24 @@ app.post("/login",async(req,res)=>{
   }
 })
 
-app.get("/feed",async(req,res) => {
-  const email = req.body.emailId;
-  const data = await User.find({})
-  if(data){
-    res.send(data)
-  }
-  else{
-    res.status(404).send("User not found")
-  }
-})
 
-//Delete user from DB
-app.delete("/user", async(req,res) => {
-  const userId = req.body.userId;
+app.get("/profile", userAuth, async(req, res) => {
   try{
-  const result = await User.findByIdAndDelete(userId);
-  console.log(result);
-  res.send("User deleted succesfully")
+const {token} = req.cookies;
+if(!token){
+  throw new Error("Invalid Token")
+}
+const isTokenValid = await jwt.verify(token,"DEVTENDER2401");
+const {_id} = isTokenValid;
+const userData = await User.findById(_id);
+if(!userData){
+   throw new Error("User doesnt exists!")
+}
+res.send(userData)
+  } catch(e){
+    console.log(e,"Error");
+    res.status(500).send(e.message)
   }
-  catch(e){
-    console.log(e,"Error")
-  }
-})
 
-app.patch("/user/:userId", async (req, res) => {
-  const userId = req.params.userId;
-  const data = req.body;
-  try {
-    const UPDATES_RESTRICTED_FOR = ["emailId"];
-    const isUpdateAllowed = Object.keys(data).every( k => !UPDATES_RESTRICTED_FOR.includes(k));
-    if(!isUpdateAllowed){
-      res.status(400).send("Update not allowed.")
-    }
-    const user = await User.findByIdAndUpdate(userId, { ...data}, {returnDocument:"after"});
-    res.send({message:"User updated succesfully!", data:user})
-  } catch (e) {
-    console.log(e, "Error!");
-  }
-});
+})
 
