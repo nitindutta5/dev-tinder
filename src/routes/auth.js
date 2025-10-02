@@ -43,9 +43,12 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/logout", (req, res) => {
-  // Handle user logout
-  res.send("User logged out");
+router.post("/logout", async (req, res) => {
+  res
+    .cookie("token", null, {
+      expires: new Date(Date.now()),
+    })
+    ?.send("User logged out");
 });
 
 module.exports = router;

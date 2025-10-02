@@ -8,9 +8,11 @@ const userAuth = async (req, res, next) => {
     throw new Error("Invalid Token!");
   }
   const decodedObject = await jwt.verify(token,"DEVTENDER2401")
-  const isUserAuthorized = await User.findById(decodedObject?._id);
+  const user = await User.findById(decodedObject?._id);
     
-    if(isUserAuthorized){
+    if(user){
+    // pass the user id to next middleware
+      req.user = user;
       next();
     }
     else{

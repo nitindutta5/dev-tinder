@@ -25,9 +25,9 @@ app.use(express.json());
 app.use(cookieParser());
 // Swagger UI endpoint
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
-app.use("/api/auth", authRouter);
-app.use("/api/user", profileRouter);
-app.use("/api/requests", requestsRouter);
+app.use("/auth", authRouter);
+app.use("/user", profileRouter);
+app.use("/requests", requestsRouter);
 
 
 
